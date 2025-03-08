@@ -1,7 +1,16 @@
 {
   "name": "student-todo-desktop",
-  "version": "1.0.0",
-  "description": "Student Todo List with Canvas Integration",
+  "version": "2.1.0",
+  "description": "Student Todo List with Canvas Integration - An open-source app for students to manage assignments and todos",
+  "author": {
+    "name": "Nicholas Conoplia",
+    "url": "https://github.com/nicholasconoplia"
+  },
+  "homepage": "https://github.com/nicholasconoplia/student-todo-list",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicholasconoplia/student-todo-list.git"
+  },
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -26,7 +35,24 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": ["dmg", "zip"],
-      "icon": "build/icon.icns"
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "sign": false,
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     },
     "win": {
       "target": ["nsis", "portable"],
