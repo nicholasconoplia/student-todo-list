@@ -327,11 +327,6 @@ function showApiKeyInstructions() {
 // Update the showCanvasModal function to include the help link
 async function showCanvasModal() {
   const storedKey = await window.api.getStoredCanvasApiKey();
-  if (storedKey) {
-    canvasApiKeyInput.value = storedKey;
-    fetchCanvasAssignments(); // Auto-fetch if we have a stored key
-    return; // Don't show the modal if we have a valid key
-  }
   
   // Add help link if it doesn't exist
   if (!document.querySelector('.api-help-link')) {
@@ -346,6 +341,10 @@ async function showCanvasModal() {
     
     const authContainer = document.querySelector('.canvas-auth');
     authContainer.appendChild(helpLink);
+  }
+  
+  if (storedKey) {
+    canvasApiKeyInput.value = storedKey;
   }
   
   canvasModal.style.display = 'block';
@@ -368,7 +367,8 @@ async function fetchCanvasAssignments() {
   try {
     const groupedAssignments = await window.api.fetchCanvasAssignments(apiKey);
     
-    // If we got here, the API key was valid, so close the modal
+    // If we got here, the API key was valid, so close the modal and store the key
+    await window.api.storeCanvasApiKey(apiKey);
     closeCanvasModal();
     
     assignmentsList.innerHTML = '';

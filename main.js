@@ -12,20 +12,18 @@ app.name = 'ToDo List';
 
 let mainWindow;
 
-// Check if we're testing first launch
-const isTestingFirstLaunch = process.argv.includes('--test-first-launch');
-
 // API key storage functions using electron-store
 function storeCanvasApiKey(apiKey) {
   store.set('canvasApiKey', apiKey);
+  store.set('hasCompletedFirstLaunch', true); // Mark first launch as complete
 }
 
 function getStoredCanvasApiKey() {
-  // If testing first launch, always return null to simulate no API key
-  if (isTestingFirstLaunch) {
-    return null;
-  }
   return store.get('canvasApiKey');
+}
+
+function hasCompletedFirstLaunch() {
+  return store.get('hasCompletedFirstLaunch', false);
 }
 
 // Create the browser window
@@ -46,10 +44,12 @@ function createWindow() {
   // Load the index.html file
   mainWindow.loadFile('index.html');
 
-  // Check if API key exists and show Canvas modal if it doesn't
+  // Check if this is first launch or if API key doesn't exist
   mainWindow.webContents.on('did-finish-load', async () => {
     const apiKey = await getStoredCanvasApiKey();
-    if (!apiKey) {
+    const completedFirstLaunch = hasCompletedFirstLaunch();
+    
+    if (!completedFirstLaunch || !apiKey) {
       mainWindow.webContents.send('show-canvas-modal');
     }
   });
