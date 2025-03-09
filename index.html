@@ -2,60 +2,313 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Student Todo App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="app-container">
+    <!-- Header Section -->
     <header>
-      <h1>Todo List</h1>
-      <div class="header-controls">
-        <div class="theme-switch-container">
-          <input type="checkbox" class="checkbox" id="themeToggle">
-          <label for="themeToggle" class="checkbox-label">
-            <i class="fas fa-moon"></i>
-            <i class="fas fa-sun"></i>
-            <span class="ball"></span>
-          </label>
+      <div class="header-left">
+        <div class="logo-container">
+          <div class="title-container">
+            <h1>To-Do List App</h1>
+            <div class="creator-credit">made by @nickconoplia</div>
+          </div>
         </div>
-        <button id="pinButton">Pin Window</button>
+      </div>
+      <div class="header-controls">
+        <div class="sync-status">
+          <div class="sync-indicator">
+            <i class="fas fa-sync-alt"></i>
+            <span>Synced</span>
+          </div>
+          <span id="lastSynced" class="sync-time">Last synced: 10:33:22</span>
+        </div>
+        <div class="tutorial-toggle">
+          <button id="showTutorial" class="tutorial-button">
+            <i class="fas fa-question-circle"></i>
+            <span>How to Use</span>
+          </button>
+        </div>
       </div>
     </header>
-    
-    <div class="todo-container">
-      <div id="todoList" class="todo-list"></div>
-    </div>
-    
-    <div class="add-todo-container">
-      <div class="type-toggle">
-        <label class="toggle-switch">
-          <input type="checkbox" id="typeToggle">
-          <span class="toggle-slider"></span>
-        </label>
-        <span class="toggle-label">Header</span>
-      </div>
-      <input type="text" id="newTodoInput" placeholder="Add a new item">
-      <button id="addTodoButton">Add Item</button>
-    </div>
-    
-    <div class="canvas-container">
-      <button id="canvasButton">Get Canvas Assignments</button>
-    </div>
-    
-    <div id="canvasModal" class="modal">
+
+    <!-- Create Header Modal -->
+    <div id="createHeaderModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>Canvas Assignments</h2>
-        <div class="canvas-auth">
-          <input type="text" id="canvasApiKey" placeholder="Enter Canvas API Key">
-          <button id="loadAssignmentsButton">Load Assignments</button>
+        <h2>Create New Header</h2>
+        <div class="modal-input-container">
+          <label for="headerName">Header Name</label>
+          <input type="text" id="headerName" placeholder="Enter header name" class="modal-input">
         </div>
-        <div id="assignmentsList" class="assignments-list"></div>
+        <div class="modal-actions">
+          <button id="createHeaderBtn" class="primary-button">Create Header</button>
+          <button class="secondary-button close-modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create New Header Button -->
+    <button class="create-header-button">
+      <i class="fas fa-plus"></i>
+      <span>Create New Header</span>
+    </button>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Personal Tasks Section -->
+    <div class="task-section">
+      <div class="task-header">
+        <div class="task-header-left">
+          <i class="fas fa-user task-icon"></i>
+          <h2 class="task-title" contenteditable="true" spellcheck="false">Personal Tasks</h2>
+          <span class="task-count">0</span>
+        </div>
+        <div class="task-header-right">
+          <button class="delete-header-button">✕</button>
+        </div>
+      </div>
+      <div class="task-list">
+      </div>
+    </div>
+
+    <!-- Work Tasks Section -->
+    <div class="task-section">
+      <div class="task-header">
+        <div class="task-header-left">
+          <i class="fas fa-briefcase task-icon"></i>
+          <h2 class="task-title" contenteditable="true" spellcheck="false">Work Tasks</h2>
+          <span class="task-count">0</span>
+        </div>
+        <div class="task-header-right">
+          <button class="delete-header-button">✕</button>
+        </div>
+      </div>
+      <div class="task-list">
+      </div>
+    </div>
+
+    <!-- Add New Task Section -->
+    <div class="add-task-section">
+      <h2>Add New Task</h2>
+      <div class="task-input-container">
+        <input type="text" class="task-input" placeholder="What needs to be done?">
+      </div>
+      <div class="task-options">
+        <div class="task-date-options">
+          <select class="header-select">
+            <option value="personal">Personal</option>
+            <option value="work">Work</option>
+          </select>
+          <input type="date" class="date-input" placeholder="Due date">
+          <select class="priority-select">
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option>
+          </select>
+        </div>
+        <button class="add-task-button">Add Task</button>
+      </div>
+    </div>
+
+    <!-- Canvas Assignments Section -->
+    <div class="canvas-section">
+      <h2>Canvas Assignments</h2>
+      <div class="canvas-filters">
+        <select class="canvas-filter">
+          <option value="">All Courses</option>
+        </select>
+        <select class="canvas-filter">
+          <option value="">All Types</option>
+          <option value="assignment">Assignment</option>
+          <option value="quiz">Quiz</option>
+          <option value="discussion">Discussion</option>
+        </select>
+        <select class="canvas-filter">
+          <option value="asc">Due Date: Earliest First</option>
+          <option value="desc">Due Date: Latest First</option>
+        </select>
+      </div>
+      <button id="loadAssignmentsButton" class="load-assignments-button">
+        <span>Load Canvas Assignments</span>
+        <i class="fas fa-sync-alt"></i>
+      </button>
+      <div id="assignmentsList" class="assignments-list"></div>
+    </div>
+
+    <!-- Productivity Stats Section -->
+    <div class="stats-section">
+      <h2>Productivity Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <i class="fas fa-check-circle stat-icon"></i>
+          <span class="stat-value" id="completionRate">0%</span>
+          <span class="stat-label">Completion Rate</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-chart-line stat-icon"></i>
+          <span class="stat-value" id="tasksThisWeek">0 Tasks</span>
+          <span class="stat-label">Completed This Week</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-fire stat-icon"></i>
+          <span class="stat-value" id="streakCount">0 Day Streak</span>
+          <div class="streak-progress">
+            <div class="streak-bar" id="streakBar"></div>
+          </div>
+          <span class="stat-label" id="streakMessage">Time to lock in!</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <p></p>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast">Task added successfully!</div>
+
+  <!-- Canvas API Modal -->
+  <div id="canvasModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Canvas Integration</h2>
+      <p>Enter your Canvas API key to fetch assignments:</p>
+      <div class="canvas-auth">
+        <input type="password" id="canvasApiKey" placeholder="Canvas API Key" class="input">
+        <button id="fetchAssignmentsBtn" class="button">Fetch Assignments</button>
+      </div>
+      <a href="#" class="api-help-link" id="apiHelpLink">How to get your API key?</a>
+      <div id="assignmentsList" class="assignments-list"></div>
+    </div>
+  </div>
+
+  <!-- API Instructions Modal -->
+  <div id="apiInstructionsModal" class="modal api-instructions-modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>How to Get Your Canvas API Key</h2>
+      <ol class="instructions-list">
+        <li>Log in to your Canvas account</li>
+        <li>Click on "Account" in the global navigation menu</li>
+        <li>Click on "Settings"</li>
+        <li>Scroll down to "Approved Integrations"</li>
+        <li>Click on "+ New Access Token"</li>
+        <li>Enter a purpose (e.g., "Todo List App")</li>
+        <li>Set an expiration date (optional)</li>
+        <li>Click "Generate Token"</li>
+        <li>Copy your new access token</li>
+      </ol>
+      <div class="instructions-note">
+        Note: Keep your API key secure and never share it with others. This app stores your key locally on your device.
       </div>
     </div>
   </div>
-  
+
+  <!-- Task Notes Modal -->
+  <div id="taskNotesModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Task Notes</h2>
+      <div class="task-notes-container">
+        <div class="task-info">
+          <h3 class="task-title-display"></h3>
+          <span class="task-metadata"></span>
+        </div>
+        <div class="notes-input-container">
+          <label for="taskNotes">Notes</label>
+          <textarea id="taskNotes" class="task-notes-input" placeholder="Add your notes here..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="primary-button save-notes">Save Notes</button>
+          <button class="secondary-button close-modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="taskContextMenu" class="context-menu">
+    <div class="context-menu-item" data-action="add-subtask">
+      <i class="fas fa-plus"></i> Add Subtask
+    </div>
+    <div class="context-menu-item" data-action="view-notes">
+      <i class="fas fa-sticky-note"></i> View Notes
+    </div>
+    <div class="context-menu-item" data-action="change-due-date">
+      <i class="fas fa-calendar-alt"></i> Change Due Date
+    </div>
+  </div>
+
+  <!-- Tutorial Modal -->
+  <div id="tutorialModal" class="modal tutorial-modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>How to Use the To-Do List App</h2>
+      
+      <div class="tutorial-section">
+        <h3>Task Management</h3>
+        <ul>
+          <li><strong>Add a Task:</strong> Use the "Add New Task" section at the bottom to create tasks. You can set priority, due date, and select which header to add it to.</li>
+          <li><strong>Complete a Task:</strong> Click the checkbox next to any task to mark it as complete.</li>
+          <li><strong>Edit a Task:</strong> Click on the task text to edit it directly.</li>
+          <li><strong>Task Options:</strong> Right-click on any task to:
+            <ul>
+              <li>Add subtasks</li>
+              <li>View/add notes</li>
+              <li>Change due date</li>
+            </ul>
+          </li>
+          <li><strong>Delete a Task:</strong> Click the "✕" button on the right of any task.</li>
+        </ul>
+      </div>
+
+      <div class="tutorial-section">
+        <h3>Organization</h3>
+        <ul>
+          <li><strong>Headers:</strong> Click "Create New Header" to create sections for organizing your tasks.</li>
+          <li><strong>Drag and Drop:</strong> Use the ⋮⋮ handle to drag tasks between different headers.</li>
+          <li><strong>Priority Levels:</strong> Click the priority badge to cycle through Low, Medium, and High priority.</li>
+          <li><strong>Collapse Sections:</strong> Click on any header to collapse/expand its task list.</li>
+        </ul>
+      </div>
+
+      <div class="tutorial-section">
+        <h3>Canvas Integration</h3>
+        <ul>
+          <li><strong>Connect Canvas:</strong> Click "Load Canvas Assignments" to connect your Canvas account.</li>
+          <li><strong>Import Assignments:</strong> Use the "Add to List" button on Canvas assignments to import them as tasks.</li>
+          <li><strong>Filter Assignments:</strong> Use the dropdown menus to filter assignments by course or sort by due date.</li>
+        </ul>
+      </div>
+
+      <div class="tutorial-section">
+        <h3>Productivity Features</h3>
+        <ul>
+          <li><strong>Streak Tracking:</strong> Your daily usage streak is tracked and displayed with motivational messages.</li>
+          <li><strong>Completion Rate:</strong> View your task completion rate in the stats section.</li>
+          <li><strong>Weekly Progress:</strong> Track how many tasks you've completed this week.</li>
+        </ul>
+      </div>
+
+      <div class="tutorial-section">
+        <h3>Pro Tips</h3>
+        <ul>
+          <li>Use right-click for quick access to task options</li>
+          <li>Add detailed notes to tasks for better organization</li>
+          <li>Create different headers for different projects or areas of your life</li>
+          <li>Check the app daily to maintain your streak</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
   <script src="renderer.js"></script>
 </body>
 </html>

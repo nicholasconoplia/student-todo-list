@@ -26,11 +26,6 @@ function hasCompletedFirstLaunch() {
   return store.get('hasCompletedFirstLaunch', false);
 }
 
-// Add this near the top with other store functions
-function clearStoredData() {
-  store.clear();
-}
-
 // Create the browser window
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -75,7 +70,7 @@ app.whenReady().then(() => {
 
 // Quit when all windows are closed, except on macOS
 app.on('window-all-closed', function () {
-  stopAutoRefresh();
+  clearInterval(refreshInterval);
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -119,7 +114,7 @@ ipcMain.handle('fetch-canvas-assignments', async (event, apiKey) => {
       await storeCanvasApiKey(apiKey);
     }
 
-    const baseUrl = process.env.CANVAS_API_URL || store.get('canvasApiUrl') || 'https://canvas.instructure.com';
+    const baseUrl = process.env.CANVAS_API_URL || store.get('canvasApiUrl') || 'https://canvas.uts.edu.au';
     if (!baseUrl) {
       throw new Error('Canvas API URL not configured');
     }
@@ -142,7 +137,6 @@ ipcMain.handle('fetch-canvas-assignments', async (event, apiKey) => {
     
     // Fetch assignments for each course
     const assignmentPromises = courses.map(async (course) => {
-      // First fetch assignments
       const assignmentsResponse = await fetch(
         `${baseUrl}/api/v1/courses/${course.id}/assignments?` + new URLSearchParams({
           'include[]': ['submission', 'description', 'due_at'],
@@ -164,8 +158,7 @@ ipcMain.handle('fetch-canvas-assignments', async (event, apiKey) => {
       const assignments = await assignmentsResponse.json();
       const now = new Date();
       
-      // For each assignment, fetch its submission details
-      const assignmentsWithSubmissions = await Promise.all(assignments
+      return assignments
         .filter(assignment => {
           if (!assignment.due_at || !assignment.published || assignment.locked_for_user) {
             return false;
@@ -174,90 +167,56 @@ ipcMain.handle('fetch-canvas-assignments', async (event, apiKey) => {
           const dueDate = new Date(assignment.due_at);
           return dueDate > now;
         })
-        .map(async assignment => {
-          // Fetch submission details for this assignment
-          const submissionResponse = await fetch(
-            `${baseUrl}/api/v1/courses/${course.id}/assignments/${assignment.id}/submissions/self`, {
-              headers: {
-                'Authorization': `Bearer ${storedApiKey}`
-              }
-            }
-          );
-
-          let submissionData = null;
-          if (submissionResponse.ok) {
-            submissionData = await submissionResponse.json();
-            // Log raw submission data for debugging
-            console.log(`Raw submission data for ${assignment.name}:`, submissionData);
-          }
-
+        .map(assignment => {
           const dueDate = new Date(assignment.due_at);
-          const timeSince = (now.getTime() - dueDate.getTime()) / 60000;
-          const timeAbs = Math.abs(timeSince);
-          let timeText = Math.round(timeAbs) + " min";
+          const diffTime = Math.abs(dueDate - now);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
           
-          if (timeAbs >= 60) {
-            const hours = timeAbs / 60;
-            if (hours >= 24) {
-              const days = hours / 24;
-              timeText = Math.round(days) + " day" + (Math.round(days) !== 1 ? "s" : "");
-            } else {
-              timeText = Math.round(hours) + " hour" + (Math.round(hours) !== 1 ? "s" : "");
-            }
+          let relativeDue = '';
+          if (diffDays === 0) {
+            relativeDue = 'Today';
+          } else if (diffDays === 1) {
+            relativeDue = 'Tomorrow';
+          } else if (diffDays < 7) {
+            relativeDue = `in ${diffDays}d`;
+          } else {
+            relativeDue = `in ${Math.floor(diffDays/7)}w`;
           }
-          
-          const fromNow = timeSince < 0 ? "in " + timeText : timeText + " ago";
-          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-          const formattedDate = `${months[dueDate.getMonth()]} ${dueDate.getDate()} at ${dueDate.getHours() > 12 ? dueDate.getHours() - 12 : dueDate.getHours()}:${(dueDate.getMinutes() < 10 ? "0" : "") + dueDate.getMinutes()}${dueDate.getHours() >= 12 ? "pm" : "am"}`;
 
-          // Simplified submission status check focusing on most reliable indicators
-          const isSubmitted = Boolean(
-            submissionData && (
-              // Most reliable indicator is the workflow_state
-              submissionData.workflow_state === 'submitted' ||
-              submissionData.workflow_state === 'graded' ||
-              // For assignments that are marked as complete
-              (submissionData.submitted_at && submissionData.attempt > 0)
-            )
-          );
-
-          // Log submission check details
-          console.log(`Submission check for "${assignment.name}":`, {
-            hasSubmissionData: !!submissionData,
-            workflowState: submissionData?.workflow_state,
-            submittedAt: submissionData?.submitted_at,
-            attempt: submissionData?.attempt
-          });
+          // Check submission status more accurately
+          const isSubmitted = assignment.submission && 
+                            assignment.submission.workflow_state === 'submitted' &&
+                            assignment.submission.submitted_at;
 
           return {
             id: assignment.id,
             name: assignment.name,
-            points: assignment.points_possible,
-            dueDate: formattedDate,
-            relativeDue: fromNow,
-            htmlUrl: assignment.html_url,
             courseName: course.name,
-            courseCode: course.course_code || course.name,
-            isSubmitted: isSubmitted
+            courseCode: course.course_code,
+            description: assignment.description ? assignment.description.replace(/<[^>]*>/g, '') : '',
+            dueDate: dueDate.toLocaleString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: 'numeric'
+            }),
+            relativeDue,
+            points: assignment.points_possible,
+            submissionTypes: assignment.submission_types.join(', '),
+            isSubmitted,
+            lockExplanation: assignment.lock_explanation || '',
+            htmlUrl: assignment.html_url,
+            courseId: course.id,
+            termName: course.term ? course.term.name : ''
           };
-        }));
-
-      return assignmentsWithSubmissions;
+        });
     });
 
-    // Wait for all assignment fetches to complete
-    const allAssignments = (await Promise.all(assignmentPromises))
-      .flat()
-      // Sort all assignments by due date first
-      .sort((a, b) => {
-        const dateA = new Date(a.dueDate.replace(' at ', ' '));
-        const dateB = new Date(b.dueDate.replace(' at ', ' '));
-        return dateA - dateB;
-      });
-
-    // Group assignments by course
-    const groupedAssignments = {};
+    const allAssignments = (await Promise.all(assignmentPromises)).flat();
     
+    // Group assignments by course and sort by due date within each group
+    const groupedAssignments = {};
     allAssignments.forEach(assignment => {
       if (!groupedAssignments[assignment.courseCode]) {
         groupedAssignments[assignment.courseCode] = {
@@ -269,25 +228,20 @@ ipcMain.handle('fetch-canvas-assignments', async (event, apiKey) => {
       groupedAssignments[assignment.courseCode].assignments.push(assignment);
     });
 
-    // Sort courses alphabetically and ensure assignments within each course are sorted by due date
-    const sortedGroupedAssignments = Object.entries(groupedAssignments)
-      .sort(([codeA], [codeB]) => codeA.localeCompare(codeB))
-      .reduce((acc, [code, group]) => {
-        // Sort assignments within each course by due date
-        group.assignments.sort((a, b) => {
-          const dateA = new Date(a.dueDate.replace(' at ', ' '));
-          const dateB = new Date(b.dueDate.replace(' at ', ' '));
-          return dateA - dateB;
-        });
-        acc[code] = group;
-        return acc;
-      }, {});
+    // Sort assignments within each course by due date
+    Object.values(groupedAssignments).forEach(group => {
+      group.assignments.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    });
 
-    return sortedGroupedAssignments;
+    return groupedAssignments;
   } catch (error) {
     console.error('Error fetching Canvas assignments:', error);
     throw error;
   }
+});
+
+ipcMain.handle('open-external-link', async (event, url) => {
+  await shell.openExternal(url);
 });
 
 // Add auto-refresh functionality
@@ -306,22 +260,3 @@ function startAutoRefresh() {
     }
   }, 5 * 60 * 1000);
 }
-
-// Stop auto-refresh
-function stopAutoRefresh() {
-  if (refreshInterval) {
-    clearInterval(refreshInterval);
-    refreshInterval = null;
-  }
-}
-
-// Handle external links
-ipcMain.handle('open-external-link', async (event, url) => {
-  await shell.openExternal(url);
-});
-
-// Add this with other IPC handlers
-ipcMain.handle('clear-stored-data', () => {
-  clearStoredData();
-  return true;
-});

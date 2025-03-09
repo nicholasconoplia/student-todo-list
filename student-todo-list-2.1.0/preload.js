@@ -11,7 +11,6 @@ contextBridge.exposeInMainWorld(
     openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
     storeCanvasApiKey: (apiKey) => ipcRenderer.invoke('store-canvas-api-key', apiKey),
     getStoredCanvasApiKey: () => ipcRenderer.invoke('get-stored-canvas-api-key'),
-    clearStoredData: () => ipcRenderer.invoke('clear-stored-data'),
     receive: (channel, func) => {
       if (channel === 'show-canvas-modal') {
         ipcRenderer.on(channel, (event, ...args) => func(...args));

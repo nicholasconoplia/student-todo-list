@@ -2,31 +2,6 @@
 
 A desktop application that helps students manage their todos and Canvas assignments in one place. Built with Electron.
 
-## Important Note for macOS Users
-
-When you first try to open the app, you'll see a security warning. This is normal for open-source apps that aren't registered with Apple. Here's how to open it:
-
-**Method 1 - Recommended (One-time setup):**
-1. After downloading the `.dmg` file, double-click to mount it
-2. Drag the app to your Applications folder
-3. Go to Applications folder
-4. Right-click (or Control-click) on "Student Todo List"
-5. Select "Open" from the menu
-6. Click "Open" in the security dialog
-7. The app will now open, and you won't see this warning again
-
-**Method 2 - Alternative:**
-1. Open System Settings
-2. Go to "Privacy & Security"
-3. Scroll down to "Security"
-4. Click "Open Anyway" next to the warning about Student Todo List
-5. Click "Open" in the final dialog
-
-**Why this happens:** 
-- This warning appears because the app is open-source and not registered with Apple
-- The app is completely safe - you can verify this by checking the source code on GitHub
-- Once you open it the first time using either method above, it will open normally after that
-
 ## Features
 
 - ✅ Create and manage todo lists with headers and tasks
