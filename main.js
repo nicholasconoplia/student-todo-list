@@ -2,15 +2,20 @@ const { app, BrowserWindow, ipcMain, Menu, Tray, shell } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 const fetch = require('node-fetch');
+const fs = require('fs');
 require('dotenv').config();
+
+// Set the app name before anything else
+app.name = 'To-Do';
+app.setName('To-Do');
 
 // Initialize data store
 const store = new Store();
 
-// Set the app name
-app.name = 'ToDo List';
-
 let mainWindow;
+
+// Add this near the top after the requires
+const iconPath = path.resolve(__dirname, 'build', 'icon.png');
 
 // API key storage functions using electron-store
 function storeCanvasApiKey(apiKey) {
@@ -31,14 +36,92 @@ function clearStoredData() {
   store.clear();
 }
 
+// Function to set the dock icon
+function setDockIcon() {
+  if (process.platform === 'darwin' && fs.existsSync(iconPath)) {
+    try {
+      app.dock.setIcon(iconPath);
+    } catch (error) {
+      console.warn('Failed to set dock icon:', error);
+    }
+  }
+}
+
+// Create application menu
+function createMenu() {
+  const template = [
+    {
+      label: 'To-Do',
+      submenu: [
+        { role: 'about', label: 'About To-Do' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide', label: 'Hide To-Do' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit', label: 'Quit To-Do' }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' },
+        { type: 'separator' },
+        { role: 'window' }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
 // Create the browser window
 function createWindow() {
+  if (process.platform === 'darwin') {
+    try {
+      if (fs.existsSync(iconPath)) {
+        app.dock.setIcon(iconPath);
+      }
+    } catch (error) {
+      console.warn('Failed to set dock icon:', error);
+    }
+  }
+
   mainWindow = new BrowserWindow({
     width: 400,
     height: 600,
     frame: true,
     transparent: false,
     alwaysOnTop: store.get('pinned', false),
+    icon: iconPath,
+    title: 'To-Do',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -46,8 +129,15 @@ function createWindow() {
     }
   });
 
+  // Force the window title
+  mainWindow.on('page-title-updated', (event) => {
+    event.preventDefault();
+    mainWindow.setTitle('To-Do');
+  });
+
   // Load the index.html file
   mainWindow.loadFile('index.html');
+  mainWindow.setTitle('To-Do');
 
   // Check if this is first launch or if API key doesn't exist
   mainWindow.webContents.on('did-finish-load', async () => {
@@ -57,6 +147,8 @@ function createWindow() {
     if (!completedFirstLaunch || !apiKey) {
       mainWindow.webContents.send('show-canvas-modal');
     }
+    // Ensure icon is set after page load
+    setDockIcon();
   });
 
   // Set window to stay on all workspaces/desktops
@@ -65,11 +157,16 @@ function createWindow() {
 
 // When Electron is ready
 app.whenReady().then(() => {
+  createMenu(); // Create the application menu
   createWindow();
+  setDockIcon(); // Set icon when app is ready
   startAutoRefresh();
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+    setDockIcon(); // Set icon on reactivation
   });
 });
 

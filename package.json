@@ -1,6 +1,7 @@
 {
-  "name": "student-todo-desktop",
-  "version": "2.1.0",
+  "name": "to-do",
+  "productName": "To-Do",
+  "version": "3.0.1",
   "description": "Student Todo List with Canvas Integration - An open-source app for students to manage assignments and todos",
   "author": {
     "name": "Nicholas Conoplia",
@@ -17,7 +18,8 @@
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux"
+    "build:linux": "electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "dotenv": "^16.0.3",
@@ -30,17 +32,54 @@
   },
   "build": {
     "appId": "com.student.todolist",
-    "productName": "Student Todo List",
+    "productName": "To-Do",
     "copyright": "Copyright © 2024",
+    "asar": true,
+    "compression": "maximum",
+    "removePackageScripts": true,
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
+      "!**/*.map",
+      "!**/*.md",
+      "!**/LICENSE*",
+      "!**/dist/**",
+      "!**/docs/**",
+      "!**/.github/**",
+      "!**/.vscode/**",
+      "!**/.env",
+      "!**/build/afterPack.js"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": ["**/*"]
+      }
+    ],
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        }
       ],
       "icon": "build/icon.icns",
       "hardenedRuntime": true,
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "darkModeSupport": true,
+      "minimumSystemVersion": "10.13.0"
     },
     "dmg": {
       "sign": false,
@@ -59,16 +98,21 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
       ],
       "icon": "build/icon.ico"
     },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "deleteAppDataOnUninstall": true
+    },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
+      "target": ["AppImage"],
       "icon": "build/icon.png",
       "category": "Utility"
     },
