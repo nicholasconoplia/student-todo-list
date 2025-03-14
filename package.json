@@ -1,7 +1,7 @@
 {
   "name": "to-do",
   "productName": "To-Do",
-  "version": "3.0.1",
+  "version": "3.1.3",
   "description": "Student Todo List with Canvas Integration - An open-source app for students to manage assignments and todos",
   "author": {
     "name": "Nicholas Conoplia",
@@ -15,23 +15,27 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
     "build": "electron-builder",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux",
+    "build:mac-win": "electron-builder --mac --win",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "conf": "^10.2.0",
     "dotenv": "^16.0.3",
     "electron-store": "^8.1.0",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.0.0"
+    "electron": "^34.3.0",
+    "electron-builder": "^24.0.0",
+    "electron-devtools-installer": "^4.0.0"
   },
   "build": {
-    "appId": "com.student.todolist",
+    "appId": "com.nickconoplia.todo",
     "productName": "To-Do",
     "copyright": "Copyright © 2024",
     "asar": true,
@@ -39,86 +43,53 @@
     "removePackageScripts": true,
     "files": [
       "**/*",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-      "!**/node_modules/*.d.ts",
-      "!**/node_modules/.bin",
-      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
-      "!.editorconfig",
-      "!**/._*",
-      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!{dist,dist/**/*}",
+      "!{release,release/**/*}",
+      "!**/*.{md,markdown}",
+      "!**/*.d.ts",
+      "!**/*.{iml,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,suo,xproj}",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,__pycache__,thumbs.db,.gitignore,.gitattributes}",
       "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
       "!**/{appveyor.yml,.travis.yml,circle.yml}",
-      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
-      "!**/*.map",
-      "!**/*.md",
-      "!**/LICENSE*",
-      "!**/dist/**",
-      "!**/docs/**",
-      "!**/.github/**",
-      "!**/.vscode/**",
-      "!**/.env",
-      "!**/build/afterPack.js"
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ],
     "extraResources": [
       {
+        "from": "build",
+        "to": "build",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
         "from": "assets",
         "to": "assets",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
-    "mac": {
-      "category": "public.app-category.productivity",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["arm64", "x64"]
-        }
-      ],
-      "icon": "build/icon.icns",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "darkModeSupport": true,
-      "minimumSystemVersion": "10.13.0"
-    },
-    "dmg": {
-      "sign": false,
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
+    "asarUnpack": [
+      "node_modules/electron-store/**/*",
+      "node_modules/conf/**/*",
+      "styles.css"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
     },
     "win": {
       "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
         {
           "target": "portable",
           "arch": ["x64"]
         }
       ],
       "icon": "build/icon.ico"
-    },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": false,
-      "deleteAppDataOnUninstall": true
-    },
-    "linux": {
-      "target": ["AppImage"],
-      "icon": "build/icon.png",
-      "category": "Utility"
-    },
-    "directories": {
-      "buildResources": "build",
-      "output": "dist"
     }
   }
 }
