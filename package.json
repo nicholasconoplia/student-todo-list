@@ -78,6 +78,12 @@
       "buildResources": "build",
       "output": "dist"
     },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity",
+      "darkModeSupport": true
+    },
     "win": {
       "target": [
         {
@@ -90,6 +96,21 @@
         }
       ],
       "icon": "build/icon.ico"
+    },
+    "dmg": {
+      "sign": false,
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     }
   }
 }
