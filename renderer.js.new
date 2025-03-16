@@ -1,0 +1,7 @@
+// Import Three.js and FBXLoader at the very top of the file
+import * as THREE from 'three';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+
+// DOM Elements
+const todoListEl = document.getElementById('todoList');
+// ... rest of your existing code ... 
