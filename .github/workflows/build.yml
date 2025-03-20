@@ -23,8 +23,14 @@ jobs:
     - name: Build Windows installer
       run: npm run build:win
       
-    - name: Upload installer
-      uses: actions/upload-artifact@v2
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
       with:
-        name: windows-installer
-        path: dist/*.exe
+        files: dist/*.exe
+        tag_name: v${{ github.run_number }}
+        name: Release v${{ github.run_number }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
